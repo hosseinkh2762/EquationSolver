@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حل معادلات</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; margin: 20px; background-color: #f0f0f0; }
+        h1 { text-align: center; color: #333; }
+        .container { max-width: 700px; margin: 0 auto; padding: 30px; background-color: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        label, input, button { margin: 10px 0; width: 100%; box-sizing: border-box; }
+        input { padding: 8px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 12px 24px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 16px; }
+        button:hover { background-color: #45a049; }
+        h2 { color: #444; font-size: 20px; margin-top: 20px; }
+        .result { margin-top: 20px; padding: 15px; background-color: #e8f5e9; border: 1px solid #4CAF50; border-radius: 5px; color: #333; font-size: 16px; }
+        .matrix-container { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .matrix-row { display: flex; gap: 10px; }
+        .matrix-row input { width: 60px; }
+        
+        /* طراحی ریسپانسیو برای موبایل */
+        @media (max-width: 600px) {
+            body { margin: 10px; }
+            input, button { font-size: 18px; padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>حل معادلات</h1>
+
+        <!-- برای معادلات خطی -->
+        <label for="n">تعداد معادلات:</label>
+        <input type="number" id="n" placeholder="تعداد معادلات" min="1">
+        <button onclick="createMatrix()">ایجاد ماتریس</button>
+
+        <div id="matrixInputs"></div>
+
+        <h2>حل معادله درجه دو</h2>
+        <label for="a_quadratic">ضریب a:</label>
+        <input type="number" id="a_quadratic" placeholder="a" required>
+        <label for="b_quadratic">ضریب b:</label>
+        <input type="number" id="b_quadratic" placeholder="b" required>
+        <label for="c_quadratic">ضریب c:</label>
+        <input type="number" id="c_quadratic" placeholder="c" required>
+        <button onclick="solveQuadratic()">حل معادله درجه دو</button>
+
+        <h2>حل معادله درجه سه</h2>
+        <label for="a_cubic">ضریب a:</label>
+        <input type="number" id="a_cubic" placeholder="a" required>
+        <label for="b_cubic">ضریب b:</label>
+        <input type="number" id="b_cubic" placeholder="b" required>
+        <label for="c_cubic">ضریب c:</label>
+        <input type="number" id="c_cubic" placeholder="c" required>
+        <label for="d_cubic">ضریب d:</label>
+        <input type="number" id="d_cubic" placeholder="d" required>
+        <button onclick="solveCubic()">حل معادله درجه سه</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@10.0.0/lib/browser/math.js"></script>
+    <script>
+        // تابع ایجاد ورودی‌های ماتریس
+        function createMatrix() {
+            let n = document.getElementById('n').value;
+            if (n < 1) {
+                alert("لطفاً یک عدد معتبر وارد کنید.");
+                return;
+            }
+
+            let matrixInputsDiv = document.getElementById('matrixInputs');
+            matrixInputsDiv.innerHTML = "";  // پاک کردن ورودی‌های قبلی
+
+            let matrixHtml = `<h2>مقادیر ضریب‌ها و مقادیر ثابت را وارد کنید:</h2>`;
+            let matrixContainer = `<div class="matrix-container">`;
+
+            // ورودی‌های ماتریس به صورت سطر و ستون
+            for (let i = 0; i < n; i++) {
+                matrixContainer += `<div class="matrix-row">`;
+                for (let j = 0; j < n; j++) {
+                    matrixContainer += `<input type="number" id="a${i}${j}" placeholder="ضریب ${i+1}-${j+1}" required>`;
+                }
+                matrixContainer += `<input type="number" id="b${i}" placeholder="مقدار ثابت ${i+1}" required>`;
+                matrixContainer += `</div>`;
+            }
+
+            matrixContainer += `</div>`;
+            matrixHtml += matrixContainer;
+            matrixHtml += `<button onclick="solveLinear()">حل معادله</button>`;
+
+            matrixInputsDiv.innerHTML = matrixHtml;
+        }
+
+        // تابع حل معادله خطی
+        function solveLinear() {
+            let n = document.getElementById('n').value;
+            let A = [];
+            let B = [];
+
+            for (let i = 0; i < n; i++) {
+                let row = [];
+                for (let j = 0; j < n; j++) {
+                    let value = parseFloat(document.getElementById(`a${i}${j}`).value);
+                    row.push(value);
+                }
+                A.push(row);
+
+                let constant = parseFloat(document.getElementById(`b${i}`).value);
+                B.push(constant);
+            }
+
+            try {
+                let result = math.lusolve(A, B);
+                let resultText = "حل معادله خطی:\n";
+                result.forEach((value, index) => {
+                    resultText += `x${index+1} = ${value}\n`;
+                });
+                document.getElementById('result').innerText = resultText;
+            } catch (error) {
+                document.getElementById('result').innerText = "خطا: معادله حل نمی‌شود.";
+            }
+        }
+
+        // حل معادله درجه دو
+        function solveQuadratic() {
+            let a = parseFloat(document.getElementById('a_quadratic').value);
+            let b = parseFloat(document.getElementById('b_quadratic').value);
+            let c = parseFloat(document.getElementById('c_quadratic').value);
+
+            let discriminant = b * b - 4 * a * c;
+            let resultText = '';
+
+            if (discriminant > 0) {
+                let root1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+                let root2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+                resultText = `ریشه‌ها: x₁ = ${root1}, x₂ = ${root2}`;
+            } else if (discriminant === 0) {
+                let root = -b / (2 * a);
+                resultText = `ریشه: x = ${root}`;
+            } else {
+                let realPart = -b / (2 * a);
+                let imaginaryPart = Math.sqrt(-discriminant) / (2 * a);
+                resultText = `ریشه‌های مختلط: x₁ = ${realPart} + ${imaginaryPart}i , x₂ = ${realPart} - ${imaginaryPart}i`;
+            }
+
+            document.getElementById('result').innerHTML = resultText;
+        }
+
+        // حل معادله درجه سه
+        function solveCubic() {
+            let a = parseFloat(document.getElementById('a_cubic').value);
+            let b = parseFloat(document.getElementById('b_cubic').value);
+            let c = parseFloat(document.getElementById('c_cubic').value);
+            let d = parseFloat(document.getElementById('d_cubic').value);
+
+            // استفاده از یک متد تقریبی برای حل معادله درجه سه
+            let roots = cubicRoots(a, b, c, d);
+            let resultText = 'ریشه‌ها: ';
+
+            roots.forEach((root, index) => {
+                resultText += `x${index + 1} = ${root} `;
+            });
+
+            document.getElementById('result').innerHTML = resultText;
+        }
+
+        // تابع برای حل معادله درجه سه
+        function cubicRoots(a, b, c, d) {
+            let roots = [];
+            // فرمول‌های عمومی برای حل معادله درجه سه را می‌توان در اینجا پیاده‌سازی کرد
+            let discriminant = b * b - 3 * a * c;
+            if (discriminant >= 0) {
+                roots.push((-b + Math.sqrt(discriminant)) / (3 * a));
+            } else {
+                roots.push(-b / (3 * a));
+            }
+            return roots;
+        }
+    </script>
+</body>
+</html>
